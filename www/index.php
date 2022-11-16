@@ -27,3 +27,9 @@
         </li>
     </ul>
 </ul>
+
+<?php 
+    $rnd = random_bytes(16);
+    $rnd[6] = chr(ord($rnd[6]) & 0x0f | 0x40);
+    $rnd[8] = chr(ord($rnd[8]) & 0x3f | 0x80);
+    echo vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($rnd), 4));

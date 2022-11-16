@@ -1,0 +1,70 @@
+Находим openssl.exe: 
+  есть в Git (Program Files/Git/usr/bin)
+  есть в xampp\apache\bin  --
+
+"C:\xampp\apache\bin\openssl.exe"
+
+Запускаем "cmd" и переходим в папку проекта
+cd C:/Projects/Step/PHP/PV011/
+Создаем папку для сертификатов (однократно)
+md cert     (make dir)
+Заходим в эту папку
+cd cert
+
+Создать CA - центр сертификации
+"C:\Program Files\Git\usr\bin\openssl" req -x509 -sha256 -days 1825 -newkey rsa:2048 -keyout rootCA.key -out rootCA.crt -nodes 
+Вводим
+        Country Name (2 letter code) [AU]:UA
+        State or Province Name (full name) [Some-State]:Ukraine
+        Locality Name (eg, city) []:Odessa
+        Organization Name (eg, company) [Internet Widgits Pty Ltd]:IT Step
+        Organizational Unit Name (eg, section) []:CA
+        Common Name (e.g. server FQDN or YOUR name) []:pv011.local
+        Email Address []:
+
+Создаем запрос на сертификацию
+"C:\Program Files\Git\usr\bin\openssl" req -newkey rsa:2048 -nodes -keyout pv011_local.key -out pv011_local.csr
+Вводим (должны быть отличия от предыдущего)
+        Country Name (2 letter code) [AU]:UA
+        State or Province Name (full name) [Some-State]:Ukraine
+        Locality Name (eg, city) []:Odessa
+        Organization Name (eg, company) [Internet Widgits Pty Ltd]:Group
+        Organizational Unit Name (eg, section) []:PV 011
+        Common Name (e.g. server FQDN or YOUR name) []:pv011.local
+        Email Address []:
+
+        Please enter the following 'extra' attributes
+        to be sent with your certificate request
+        A challenge password []:
+        An optional company name []:
+
+Создаем данные для подписывания (файл pv011_local.ext)
+(см. файл в cert/)
+
+Подписываем запрос
+"C:\Program Files\Git\usr\bin\openssl" x509 -req -CA rootCA.crt -CAkey rootCA.key -in pv011_local.csr -out pv011_local.crt -days 1825 -CAcreateserial -extfile pv011_local.ext
+Результат:
+  Signature ok
+  ....
+
+Проверяем подпись
+"C:\Program Files\Git\usr\bin\openssl" verify -CAfile rootCA.crt -verify_hostname pv011.local   pv011_local.crt
+Результат:
+  pv011_local.crt: OK
+
+Регистрируем центр сертификации
+Win-R certlm.msc
+  Доверенные корневые центры сертификации - (ПКМ) - импорт - rootCA.crt
+
+В конфигурации Apache-vhost дублируем запись *:80
+заменяем на *:443 и добавляем строки
+<VirtualHost *:443>
+ .... (копия)
+  SSLEngine on
+	SSLCertificateFile "C:/Projects/Step/PHP/PV011/cert/pv011_local.crt"
+	SSLCertificateKeyFile "C:/Projects/Step/PHP/PV011/cert/pv011_local.key"
+</VirtualHost>
+
+Перезапускаем Apache (в любом случае, если что-то менялось)
+
+Открываем в браузере https://pv011.local/

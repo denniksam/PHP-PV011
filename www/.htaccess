@@ -1,0 +1,5 @@
+# включаем модуль обработки запросов
+RewriteEngine On   
+# перенаправляем все запросы на файл access_manager.php
+# сохраняем GET-параметры (QSA - Query String Append)
+RewriteRule  .*  access_manager.php [QSA]

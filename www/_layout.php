@@ -14,6 +14,7 @@
         <a href="/fundamentals">Основы РНР</a>
         <a href="/layout">Шаблонизация</a>
         <a href="/formdata">Данные форм</a>
+        <a href="/db">Работа с БД</a>
     </nav>
 
     <h1>PHP</h1>    
@@ -26,6 +27,7 @@
         case 'basics'       : 
         case 'fundamentals' : 
         case 'layout'       : 
+        case 'db'           :
         case 'formdata'     : include "{$path_parts[1]}.php" ; break ;
         default :
             echo "404" ;

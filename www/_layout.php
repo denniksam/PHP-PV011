@@ -15,6 +15,17 @@
         <a href="/layout">Шаблонизация</a>
         <a href="/formdata">Данные форм</a>
         <a href="/db">Работа с БД</a>
+        
+        <?php if( is_array( $_AUTH ) ) { ?>
+            <b>Hello</b>
+        <?php } else {  ?>
+            <form method="post">
+                <label><input name="userlogin" placeholder="login" /></label>
+                <label><input name="userpassw" type="password" /></label>
+                <button>Log in</button>
+            </form>
+            <?php if( is_string( $_AUTH ) ) { echo $_AUTH ; } ?>
+        <?php }  ?>
     </nav>
 
     <h1>PHP</h1>    

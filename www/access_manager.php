@@ -23,9 +23,15 @@ if( empty( $connection ) ) {
 }
 include "auth.php" ;
 
-
-// ~View
-include "_layout.php" ;
+// ~Controllers
+$controller_file = "controllers/" . $path_parts[1] . "_controller.php" ;  // [1] - первая непустая часть (суть контроллер)
+if( is_file( $controller_file ) ) {
+    include $controller_file ;
+}
+else {
+    // ~View
+    include "_layout.php" ;
+}
 
 function flush_file( $filename ) {
     ob_clean() ;                               // очищаем буферизацию

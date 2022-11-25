@@ -25,6 +25,7 @@
                 <button>Log in</button>
             </form>
             <?php if( is_string( $_AUTH ) ) { echo $_AUTH ; } ?>
+            <a href="/register">Регистрация</a>
         <?php }  ?>
     </nav>
 
@@ -39,6 +40,7 @@
         case 'fundamentals' : 
         case 'layout'       : 
         case 'db'           :
+        case 'register'     :
         case 'formdata'     : include "{$path_parts[1]}.php" ; break ;
         default :
             echo "404" ;

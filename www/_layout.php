@@ -18,6 +18,7 @@
         
         <?php if( is_array( $_CONTEXT[ 'auth_user' ] ) ) { ?>
             <b>Hello, <?= $_CONTEXT[ 'auth_user' ][ 'name' ] ?></b>
+            <?=  $_CONTEXT[ 'auth_interval' ] ?>
             <!-- Кнопка выхода из авторизованного режима - ссылка передающая параметр "logout" -->
             <a class="logout" href="?logout">Log out</a>
         <?php } else {  ?>

@@ -11,7 +11,7 @@
         <div class="reg-form-container">
             <div class="reg-form">
                 <div class="reg-form-title">Create Account</div>
-                <form class="registerForm" method="post">
+                <form class="registerForm" method="post" enctype="multipart/form-data">
                     <div class="reg-form-control-wrapper">
                         <div class="reg-form-control">
                             <label for="login">Login</label>
@@ -40,6 +40,12 @@
                         <div class="reg-form-control">
                             <label for="email">Email</label>
                             <input type="email" name="email" required value='<?= (isset($view_data['email'])) ? $view_data['email'] : "" ?>' />
+                        </div>
+                    </div>
+                    <div class="reg-form-control-wrapper">
+                        <div class="reg-form-control">
+                            <label for="email">Avatar</label>
+                            <input type="file" name="avatar" />
                         </div>
                     </div>
                     <button class="reg-button">Registration</button>

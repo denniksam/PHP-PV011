@@ -16,15 +16,17 @@
         <a href="/formdata">Данные форм</a>
         <a href="/db">Работа с БД</a>
         
-        <?php if( is_array( $_AUTH ) ) { ?>
-            <b>Hello</b>
+        <?php if( is_array( $_CONTEXT[ 'auth_user' ] ) ) { ?>
+            <b>Hello, <?= $_CONTEXT[ 'auth_user' ][ 'name' ] ?></b>
+            <!-- Кнопка выхода из авторизованного режима - ссылка передающая параметр "logout" -->
+            <a class="logout" href="?logout">Log out</a>
         <?php } else {  ?>
             <form method="post">
                 <label><input name="userlogin" placeholder="login" /></label>
                 <label><input name="userpassw" type="password" /></label>
                 <button>Log in</button>
             </form>
-            <?php if( is_string( $_AUTH ) ) { echo $_AUTH ; } ?>
+            <?php if( isset( $_CONTEXT[ 'auth_error' ] ) ) { echo $_CONTEXT[ 'auth_error' ] ; } ?>
             <a href="/register">Регистрация</a>
         <?php }  ?>
     </nav>

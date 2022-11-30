@@ -66,16 +66,26 @@ case 'POST' :
                 }
                 else {
                     $extension = substr( $_FILES['avatar']['name'], $dot_position ) ;  // расширение файла (с точкой ".png")
-                    /* Д.З. Загрузка аватарки:
-                        проверить расширение файла на допустимый перечень
-                        сгенерировать случайное имя файла, сохранить расширение
-                        загрузить файл в папку www/avatars
+                    /* Загрузка аватарки:
+                        v проверить расширение файла на допустимый перечень
+                        v сгенерировать случайное имя файла, сохранить расширение
+                        v загрузить файл в папку www/avatars
                         его имя добавить в параметры SQL-запроса и передать в БД
                     */
                     // echo $extension ; exit ;
-                    
+                    if( ! array_search( $extension, ['.jpg', '.png', '.jpeg'] ) ) {
+                        $_SESSION[ 'reg_error' ] = "File extension '{$extension}' not supported" ;
+                    }
+                    else {
+                        $avatar_path = 'avatars/' ;
+                        do {
+                            $avatar_saved_name = bin2hex( random_bytes(8) ) . $extension ;
+                        } while( file_exists( $avatar_path . $avatar_saved_name ) ) ;
+                        if( ! move_uploaded_file( $_FILES['avatar']['tmp_name'], $avatar_path . $avatar_saved_name ) ) {
+                            $_SESSION[ 'reg_error' ] = "File (avatar) uploading error" ;
+                        }
+                    }
                 }
-
             }
         }
     }
@@ -85,11 +95,16 @@ case 'POST' :
         $salt = md5( random_bytes(16) ) ;
         $pass = md5( $_POST['confirm'] . $salt ) ;
         $confirm_code = bin2hex( random_bytes(3) ) ;
-        $sql = "INSERT INTO Users(`id`,`login`,`name`,`salt`,`pass`,`email`,`confirm`) 
-                VALUES(UUID(),?,?,'$salt','$pass',?,'$confirm_code')" ;
+        $sql = "INSERT INTO Users(`id`,`login`,`name`,`salt`,`pass`,`email`,`confirm`,`avatar`) 
+                VALUES(UUID(),?,?,'$salt','$pass',?,'$confirm_code',?)" ;
         try {
             $prep = $connection->prepare( $sql ) ;
-            $prep->execute( [ $_POST['login'], $_POST['userName'], $_POST['email'] ] ) ;
+            $prep->execute( [ 
+                $_POST['login'], 
+                $_POST['userName'], 
+                $_POST['email'],
+                isset( $avatar_saved_name ) ? $avatar_saved_name : null
+            ] ) ;
             $_SESSION[ 'reg_ok' ] = "Reg ok" ;
         }
         catch( PDOException $ex ) {

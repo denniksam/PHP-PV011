@@ -17,6 +17,7 @@
 /logs/*
 !/logs/empty
 /log/*
+/www/ini/*
 
 # CakePHP 2
 

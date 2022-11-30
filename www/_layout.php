@@ -15,10 +15,12 @@
         <a href="/layout">Шаблонизация</a>
         <a href="/formdata">Данные форм</a>
         <a href="/db">Работа с БД</a>
+        <a style="color:maroon" href="/email_test">E-mail</a>
         
         <?php if( is_array( $_CONTEXT[ 'auth_user' ] ) ) { ?>
             <b>Hello, <?= $_CONTEXT[ 'auth_user' ][ 'name' ] ?></b>
-            <?=  $_CONTEXT[ 'auth_interval' ] ?>
+            <img class='user-avatar' src='/avatars/<?= empty($_CONTEXT['auth_user']['avatar']) ? 'no-avatar.png' : $_CONTEXT['auth_user']['avatar'] ?>' />
+            
             <!-- Кнопка выхода из авторизованного режима - ссылка передающая параметр "logout" -->
             <a class="logout" href="?logout">Log out</a>
         <?php } else {  ?>
@@ -44,6 +46,7 @@
         case 'layout'       : 
         case 'db'           :
         case 'register'     :
+        case 'email_test'   :
         case 'formdata'     : include "{$path_parts[1]}.php" ; break ;
         default :
             echo "404" ;

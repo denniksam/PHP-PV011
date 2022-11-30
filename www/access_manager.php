@@ -56,6 +56,9 @@ function flush_file( $filename ) {
         case 'ico' :
             $content_type = "image/$ext" ; 
             break ;
+        case 'svg' :
+            $content_type = "image/svg+xml" ;
+            break ;  
 
         default:  return false ;               // недопустимое расширение - не отдаем файл
     }

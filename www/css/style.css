@@ -76,3 +76,8 @@
     color: fuchsia;
     font-weight: 900;
 }
+.user-avatar {
+    border-radius: 40%;
+    max-height: 40px;
+    max-width: 50px;
+}

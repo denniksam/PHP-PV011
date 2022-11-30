@@ -73,7 +73,7 @@ case 'POST' :
                         его имя добавить в параметры SQL-запроса и передать в БД
                     */
                     // echo $extension ; exit ;
-                    if( ! array_search( $extension, ['.jpg', '.png', '.jpeg'] ) ) {
+                    if( ! array_search( $extension, ['.jpg', '.png', '.jpeg', '.svg'] ) ) {
                         $_SESSION[ 'reg_error' ] = "File extension '{$extension}' not supported" ;
                     }
                     else {

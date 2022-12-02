@@ -19,6 +19,7 @@
 /log/*
 /www/ini/*
 /lib/*
+/www/avatars/*
 
 # CakePHP 2
 

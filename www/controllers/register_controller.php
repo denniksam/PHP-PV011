@@ -108,7 +108,8 @@ case 'POST' :
         send_email( $_POST['email'], 
             "pv011.local Email verification", 
             "<b>Hello, {$_POST['userName']}</b><br/>
-            Type code <strong>$confirm_code</strong> to confirm email" ) ;
+            Type code <strong>$confirm_code</strong> to confirm email<br/>
+            Or follow next <a href='https://pv011.local/confirm?code={$confirm_code}&email={$_POST['email']}'>link</a>" ) ;
 
         $sql = "INSERT INTO Users(`id`,`login`,`name`,`salt`,`pass`,`email`,`confirm`,`avatar`) 
                 VALUES(UUID(),?,?,'$salt','$pass',?,'$confirm_code',?)" ;

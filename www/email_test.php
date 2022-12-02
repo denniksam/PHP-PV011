@@ -1,4 +1,15 @@
 <?php
+
+include_once "helper/send_email.php" ;
+if( ! function_exists( "send_email" ) ) {
+    echo "include error" ;
+    exit ;
+}
+send_email( "denniksam@gmail.com", 
+    "Email verification", 
+    "<b>Hello</b><br/>Type code XXXXXX to confirm email" ) ;
+
+/*
 use PHPMailer\PHPMailer\PHPMailer;   // using namespace
 use PHPMailer\PHPMailer\Exception;
 
@@ -34,6 +45,7 @@ if(!$mail->Send()) {
 } else {
     echo "Message has been sent" ;
 }
+*/
 /*
 Д.З. Настроить и Реализовать отправку почтовых сообщений по SMTP протоколу.
 При регистрации пользователя формировать и отправлять письмо с кодом подтверждения почты (confirm)

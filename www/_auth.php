@@ -1,6 +1,8 @@
 <?php if( is_array( $_CONTEXT[ 'auth_user' ] ) ) { ?>
     <b>Hello, <?= $_CONTEXT[ 'auth_user' ][ 'name' ] ?></b>
+<a href="/profile/<?= $_CONTEXT['auth_user']['login'] ?>">
     <img class='user-avatar' src='/avatars/<?= empty($_CONTEXT['auth_user']['avatar']) ? 'no-avatar.png' : $_CONTEXT['auth_user']['avatar'] ?>' />
+</a>
     <?php  // проверка на неподтвержденную почту, показ поля для кода
         if( $_CONTEXT[ 'auth_user' ][ 'confirm' ] != null ) {
             // почта не подтверждена ?>

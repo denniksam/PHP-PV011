@@ -1,4 +1,12 @@
 <?php
+if( $_SERVER[ 'REQUEST_METHOD' ] == 'PUT' ) {
+    // print_r( $_REQUEST ) ;  // PUT запрос не разбирает тело автоматически
+    $body = file_get_contents( "php://input" ) ;  // служебное имя входного потока тела запроса
+    echo $body ;
+    // Д.З. Разделить параметры PUT-запроса, подготовить SQL запрос на обновление данных пользователя
+    exit ;
+}
+
 $_CONTEXT[ 'page_title' ] = "Profile" ;
 
 if( empty( $_CONTEXT[ 'path_parts' ][2] ) ) {
@@ -15,6 +23,7 @@ if( is_array( $_CONTEXT[ 'auth_user' ] )
         'login'  => $_CONTEXT[ 'auth_user' ][ 'login'  ] ,
         'name'   => $_CONTEXT[ 'auth_user' ][ 'name'   ] ,
         'email'  => $_CONTEXT[ 'auth_user' ][ 'email'  ] ,
+        'title'  => "My profile"
     ] ;
 }
 else {
@@ -30,6 +39,7 @@ else {
                 'login'  => $row[ 'login'  ] ,
                 'name'   => $row[ 'name'   ] ,
                 'email'  => $row[ 'email'  ] ,
+                'title'  => $row[ 'login'  ] . " profile"
             ] ;
         }
         else {

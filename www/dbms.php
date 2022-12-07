@@ -8,5 +8,6 @@ try {
         ] ) ;
 }
 catch( PDOException $ex ) {
+    $_CONTEXT['logger']( 'db connection ' . $ex->getMessage() ) ;
     $connection = null ;
 }

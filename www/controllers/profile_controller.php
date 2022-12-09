@@ -1,9 +1,45 @@
 <?php
+if( $_SERVER[ 'REQUEST_METHOD' ] == 'DELETE' ) {
+    if( ! is_array( $_CONTEXT[ 'auth_user' ] ) ) {  // неавторизованный запрос
+        http_response_code( 401 ) ;
+        echo "Unauthorized" ;
+        exit ;
+    }
+}
+
 if( $_SERVER[ 'REQUEST_METHOD' ] == 'PUT' ) {
+    if( ! is_array( $_CONTEXT[ 'auth_user' ] ) ) {  // неавторизованный запрос
+        http_response_code( 401 ) ;
+        echo "Unauthorized" ;
+        exit ;
+    }
     // print_r( $_REQUEST ) ;  // PUT запрос не разбирает тело автоматически
     $body = file_get_contents( "php://input" ) ;  // служебное имя входного потока тела запроса
-    echo $body ;
-    // Д.З. Разделить параметры PUT-запроса, подготовить SQL запрос на обновление данных пользователя
+    // данные приходят в формате JSON - декодируем их json_decode. без (true) создается объект
+    // с объектами РНР работает чуть хуже, чем с массивами
+    $data = json_decode( $body, true ) ;  // преобразование полученных данных в ассоц.массив(true)
+    
+    // TODO: проверить новый логин на занятость, если меняется почта, то высылать код подтверждения
+    $sql = "SELECT u.login, u.name, u.email FROM Users u WHERE u.id = ?" ;
+
+    $sql = "UPDATE Users u SET u.login = ?, u.name = ?, u.email = ? WHERE u.id = ?" ;
+    $pars = [ $data["login"], $data["name"], $data["email"], $_CONTEXT['auth_user']['id'] ] ;
+    try {
+        $prep = $_CONTEXT['connection']->prepare( $sql ) ;
+        $prep->execute( $pars ) ;
+    }
+    catch( PDOException $ex ) {                 // В случае ошибки - логируем
+        $_CONTEXT['logger'](                    // записываем:
+            'profile_controller '               //   файл или имя скрипта
+            . $ex->getMessage()                 //   сообщение ошибки
+            . $sql                              //   текст запроса
+            . var_export( $pars, true ) ) ;     //   данные, подставленные в запрос
+        // $_CONTEXT['show500']() ;             // Вариант для view
+        http_response_code( 500 ) ;             // Вариант для API/fetch                   
+        echo "Internal Server Error" ;          //                         
+        exit ;                                  //     
+    }
+    echo "Ok" ;
     exit ;
 }
 

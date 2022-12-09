@@ -1,4 +1,11 @@
-<?php $is_my_profile = ( $_PROF_DATA['login'] === $_CONTEXT['auth_user']['login'] ) ; ?>
+<?php 
+    if( empty( $_PROF_DATA ) ) {
+        echo "Профиль не найден" ;
+        exit ;
+    }
+    $is_my_profile = ( $_PROF_DATA['login'] === $_CONTEXT['auth_user']['login'] ) ;     
+?>
+
 <div class='profile-container'>
     <h1><?= $_PROF_DATA['title'] ?></h1>
     
@@ -24,6 +31,8 @@
     </table>
     <?php if( $is_my_profile ) : ?>
         <button class='update-profile-btn' onclick='updateProfile()'>Update Profile</button>
+        <br/>
+        <button class='update-profile-btn' onclick='deleteProfile()'>Delete Profile</button>
         <script>
             function updateProfile() {
                 let spanLogin = document.getElementById('user-login') ;
@@ -35,11 +44,22 @@
                 fetch('/profile', {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
+                        'Content-Type': 'application/json'
                     },
-                    body: `login=${spanLogin.innerText}&name=${spanName.innerText}&email=${spanEmail.innerText}`
-                }).then( r => r.text() )
-                .then( console.log );
+                    body: JSON.stringify({ 
+                        "login":spanLogin.innerText,
+                        "name": spanName.innerText, 
+                        "email":spanEmail.innerText } )
+                }).then( r => { 
+                    if(r.status == 200) { window.location = window.location } 
+                    else {console.log(r.status); r.text().then(console.log); }
+                } ) ;
+            }
+            function deleteProfile() {
+                fetch( '/profile', {
+                    method: 'DELETE',
+                }).then(r=>r.text())
+                .then(console.log);
             }
         </script>
     <?php endif ?>

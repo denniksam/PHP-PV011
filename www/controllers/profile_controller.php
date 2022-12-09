@@ -5,6 +5,21 @@ if( $_SERVER[ 'REQUEST_METHOD' ] == 'DELETE' ) {
         echo "Unauthorized" ;
         exit ;
     }
+    $sql = "UPDATE Users u SET u.delete_dt = CURRENT_TIMESTAMP WHERE u.id = '{$_CONTEXT['auth_user']['id']}' " ;
+    try {
+        $_CONTEXT['connection']->query( $sql ) ;
+    }
+    catch( PDOException $ex ) {       
+        $_CONTEXT['logger'](          
+            'profile_controller '     
+            . $ex->getMessage()       
+            . $sql ) ;   
+        http_response_code( 500 ) ;          
+        echo "Internal Server Error" ;   
+        exit ;                
+    }
+    echo "Ok" ;
+    exit ;
 }
 
 if( $_SERVER[ 'REQUEST_METHOD' ] == 'PUT' ) {
@@ -64,7 +79,7 @@ if( is_array( $_CONTEXT[ 'auth_user' ] )
 }
 else {
     // просмотр чужого профиля
-    $sql = "SELECT u.* FROM Users u WHERE u.login = ?" ;
+    $sql = "SELECT u.* FROM Users u WHERE u.login = ? AND u.delete_dt IS NULL" ;
     try {
         $prep = $_CONTEXT[ 'connection' ]->prepare( $sql ) ;
         $prep->execute( [ $_CONTEXT[ 'path_parts' ][2] ] ) ;

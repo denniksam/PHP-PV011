@@ -1,6 +1,6 @@
 <?php 
     if( empty( $_PROF_DATA ) ) {
-        echo "Профиль не найден" ;
+        echo "Профиль не найден или был удален" ;
         exit ;
     }
     $is_my_profile = ( $_PROF_DATA['login'] === $_CONTEXT['auth_user']['login'] ) ;     
@@ -58,8 +58,10 @@
             function deleteProfile() {
                 fetch( '/profile', {
                     method: 'DELETE',
-                }).then(r=>r.text())
-                .then(console.log);
+                }).then( r => { 
+                    if(r.status == 200) { window.location = "/?logout" } 
+                    else {console.log(r.status); r.text().then(console.log); }
+                } ) ;
             }
         </script>
     <?php endif ?>

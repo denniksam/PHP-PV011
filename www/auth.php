@@ -12,7 +12,7 @@ if( isset( $_GET[ 'logout' ] ) ) {
 if( isset( $_POST[ 'userlogin' ] ) 
  && isset( $_POST[ 'userpassw' ] ) ) {   // переданы данные аутентификации
     // находим данные в БД по логину
-    $sql = "SELECT * FROM Users u WHERE u.`login` = '{$_POST['userlogin']}' " ;
+    $sql = "SELECT * FROM Users u WHERE u.`login` = '{$_POST['userlogin']}'  AND u.delete_dt IS NULL " ;
     try {
         $res = $connection->query( $sql ) ;
         $row = $res->fetch( PDO::FETCH_ASSOC ) ;
@@ -62,7 +62,7 @@ if( isset( $_SESSION[ 'auth_id' ] ) ) {   // есть сохраненные д�
     // $_SESSION[ 'auth_time' ] = time() ;
 
     // извлекаем данные о пользователе по сохраненному id
-    $sql = "SELECT * FROM Users u WHERE u.`id` = ?" ;
+    $sql = "SELECT * FROM Users u WHERE u.`id` = ? AND u.delete_dt IS NULL" ;
     try {
         $prep = $_CONTEXT[ 'connection' ]->prepare( $sql ) ;
         $prep->execute( [ $_SESSION[ 'auth_id' ] ] ) ;
@@ -71,6 +71,10 @@ if( isset( $_SESSION[ 'auth_id' ] ) ) {   // есть сохраненные д�
         if( $row ) {
             unset( $_CONTEXT[ 'auth_user' ][ 'pass' ] ) ;
             unset( $_CONTEXT[ 'auth_user' ][ 'salt' ] ) ;
+        }
+        else {
+            // Есть сохраненный в сессии ID, но запрос не дал результата. Вероятно пользователь был удален
+            unset( $_SESSION[ 'auth_id' ] ) ;   // убираем ID из сессии
         }
     }
     catch( PDOException $ex ) {

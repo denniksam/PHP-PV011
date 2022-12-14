@@ -155,7 +155,7 @@
     display: block;
     margin: auto;
     max-height: 270px;
-    width: 270px;
+    max-width: 270px;
 }
 .product h4, h5 {
     margin: 3px;
@@ -218,4 +218,18 @@
 
 .rate-area > label:active {
     position: relative;
+}
+/*------------ Paginator -----------------*/
+.paginator {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+}
+.paginator a, .paginator b, .paginator span {
+    margin: 0 1ex;
+}
+.paginator b {
+    font-size: 28px;
 }

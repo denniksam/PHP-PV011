@@ -2,9 +2,9 @@
 Показывать товары по 
 <form>
 <select name="sort">
-    <option value=1 selected>Новизне</option>
-    <option value=2>Цене</option>
-    <option value=3>Рейтингу</option>
+    <option value=1 <?= @$view_data[ 'sort' ] == 1 ? 'selected' : '' ?> >Новизне</option>
+    <option value=2 <?= @$view_data[ 'sort' ] == 2 ? 'selected' : '' ?> >Цене</option>
+    <option value=3 <?= @$view_data[ 'sort' ] == 3 ? 'selected' : '' ?> >Рейтингу</option>
 </select>
 <button>Применить</button>
 </form>
@@ -36,6 +36,32 @@
     <u>Since <?= date( "d.m.y", strtotime( $product['add_dt'] ) ) ?></u>
  </div>
 <?php endforeach ?>
+<?php
+    $href_base = ( isset( $view_data[ 'sort' ] ) ) 
+                ? "?sort=" . $view_data[ 'sort' ] . "&"
+                : "?" ;
+?>
+<div class='paginator'>
+    <?php if( $view_data['paginator']['page'] > 1 ) : ?>
+        <a href="<?=$href_base?>page=<?= $view_data['paginator']['page'] - 1 ?>">&lArr;</a>
+    <?php else : ?>
+        <span>&lArr;</span>
+    <?php endif ?>
+
+    <?php for( $i = 1; $i <= $view_data['paginator']['lastpage']; $i++ ) : 
+        if( $i == $view_data['paginator']['page'] ) : ?>
+            <b><?= $i ?></b>
+        <?php else : ?>
+            <a href="<?=$href_base?>page=<?= $i ?>"><?= $i ?></a> 
+        <?php endif ?>
+    <?php endfor ?>
+
+    <?php if($view_data['paginator']['page'] < $view_data['paginator']['lastpage']) : ?>
+        <a href="<?=$href_base?>page=<?= $view_data['paginator']['page'] + 1 ?>">&rArr;</a>
+    <?php else : ?>
+        <span>&rArr;</span>
+    <?php endif ?>
+</div>
 
 
 

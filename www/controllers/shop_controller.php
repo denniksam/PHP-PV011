@@ -91,9 +91,54 @@ else if( $_SERVER[ 'REQUEST_METHOD' ] == 'GET' ) {
         }
     } else $order_part = "" ;
     // перечень товаров
+    $where_part = "" ;
+    // либо фильтры, либо поиск
+    if( isset( $_GET[ 'search' ] ) ) {
+        // поисковый фрагмент может нести опасность при вставке в запрос, поэтому требует экранирования
+        // (escaping). Если нет возможности использовать подготовленные запросы (а у нас уже 
+        //  всё построено без них), то нужно искать док-цию драйвера БД по экранированию
+        // Например, в одних БД символ ' экранируется как \', а в других как ''
+        $fragment = $_CONTEXT[ 'connection' ]->quote( $_GET[ 'search' ] ) ;
+        // Обычно поиск проводится по всем вариативным полям (тексты, артикулы, коды товара)
+        $where_part = " WHERE INSTR( p.name, $fragment ) OR  INSTR( p.descr, $fragment ) " ;
+
+        $view_data[ 'search' ] = $_GET[ 'search' ] ;
+    // echo $where_part; exit ;
+    }
+    else {
+        // фильтры
+        $filters = [] ;
+        if( isset( $_GET['minprice'] ) && is_numeric( $_GET['minprice'] ) ) {   // фильтр на мин. цену
+            $where_part = " WHERE p.price >= {$_GET['minprice']}" ;
+            $filters[ 'minprice' ] = $_GET[ 'minprice' ] ;
+        }
+        if( isset( $_GET['maxprice'] ) && is_numeric( $_GET['maxprice'] ) ) {   // фильтр на мин. цену
+            $where_part .= 
+                ( ($where_part == "") ? " WHERE " : " AND " )
+                . " p.price <= {$_GET['maxprice']}" ;
+            $filters[ 'maxprice' ] = $_GET[ 'maxprice' ] ;
+        }
+        $view_data[ 'filters' ] = $filters ;
+    }
+
+    // echo $where_part ; exit ;
+    // макс и мин цены
+    $sql = "SELECT MIN(p.price), MAX(p.price) FROM Products p" ;
+    try { 
+        $row = $_CONTEXT[ 'connection' ]->query( $sql )->fetch( PDO::FETCH_NUM ) ;
+        $view_data[ 'minprice' ] = $row[0] ;
+        $view_data[ 'maxprice' ] = $row[1] ;
+    }
+    catch( PDOException $ex ) {
+        $_CONTEXT['logger']( 'shop_controller3 ' . $ex->getMessage() . $sql ) ;
+        $view_data[ 'add_error' ] = "Server error try later" ;
+    }
+
+
+
     // пагинация
     // 1. сколько всего товаров
-    $sql = "SELECT COUNT(*) FROM Products " ;
+    $sql = "SELECT COUNT(p.id) FROM Products p  $where_part " ;
     try { $total = $_CONTEXT[ 'connection' ]->query( $sql )->fetch(PDO::FETCH_NUM)[0] ; }
     catch( PDOException $ex ) {
         $_CONTEXT['logger']( 'shop_controller1 ' . $ex->getMessage() . $sql ) ;
@@ -110,15 +155,18 @@ else if( $_SERVER[ 'REQUEST_METHOD' ] == 'GET' ) {
         $view_data[ 'paginator' ] = [
             'page' => $page,
             'perpage' => $perpage,
-            'lastpage' => $lastpage
+            'lastpage' => $lastpage,
+            'total' => $total
         ] ;
-        $sql = "SELECT * FROM Products p    $order_part     LIMIT $skip, $perpage" ;
+ // echo $total, ' ', $_GET['page'], '<br/>' ; print_r( $view_data[ 'paginator' ] ) ; exit ; 
+
+        $sql = "SELECT * FROM Products p   $where_part   $order_part     LIMIT $skip, $perpage" ;
         try {
             $view_data[ 'products' ] = 
                 $_CONTEXT[ 'connection' ]->query( $sql )->fetchAll( PDO::FETCH_ASSOC ) ;
         }
         catch( PDOException $ex ) {
-            $_CONTEXT['logger']( 'shop_controller2 ' . $ex->getMessage() . $sql . var_export( $params, true ) ) ;
+            $_CONTEXT['logger']( 'shop_controller2 ' . $ex->getMessage() . $sql  ) ;
             $view_data[ 'add_error' ] = "Server error try later" ;
         }
     }
@@ -131,7 +179,19 @@ else if( $_SERVER[ 'REQUEST_METHOD' ] == 'GET' ) {
 собирается элемент-пагинатор, переключающий страницы
  <--  <- 1 2  ... 31 [32] 33 ... 131 132 ->  -->
 
- Д.З. Скрыть форму добавления товара от всех, кроме админа
- при отсутствии рейтинга товара выводить рейтинг "0" или "нет оценок" 
- аналогично выводить при отсутствии описания
+Фильтры - по цене: выводить поля выбора минимальной и максимальной цены
+
+CREATE TABLE product_groups ( 
+    id CHAR(36) PRIMARY KEY  DEFAULT UUID(),
+    name TINYTEXT NOT NULL
+) ENGINE = InnoDB, DEFAULT CHARSET = UTF8 ;
+
+INSERT INTO product_groups(name) VALUES ('Программное обеспечение');
+
+Д.З. Создать таблицу product_groups ( 
+    id CHAR(36) PRIMARY KEY  DEFAULT UUID(),
+    name TINYTEXT NOT NULL
+) ENGINE = InnoDB, DEFAULT CHARSET = UTF8 ;
+Заполнить ее несколькими категориями (хотя бы 3) - для будущего фильтра
+Для товаров (таблица products) указать id группы 
 */

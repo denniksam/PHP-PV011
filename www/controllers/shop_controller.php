@@ -106,7 +106,8 @@ else if( $_SERVER[ 'REQUEST_METHOD' ] == 'GET' ) {
     // echo $where_part; exit ;
     }
     else {
-        // фильтры
+        //////////////////////////////// примененные фильтры //////////////////////////////////////////
+        // макс-мин цены
         $filters = [] ;
         if( isset( $_GET['minprice'] ) && is_numeric( $_GET['minprice'] ) ) {   // фильтр на мин. цену
             $where_part = " WHERE p.price >= {$_GET['minprice']}" ;
@@ -117,11 +118,26 @@ else if( $_SERVER[ 'REQUEST_METHOD' ] == 'GET' ) {
                 ( ($where_part == "") ? " WHERE " : " AND " )
                 . " p.price <= {$_GET['maxprice']}" ;
             $filters[ 'maxprice' ] = $_GET[ 'maxprice' ] ;
+        }       
+        // группы товаров - по принципу id=grp -- ищем параметры со значением grp и берем их имена
+        $filters[ 'product_groups_id' ] = [] ;
+        $filters[ 'product_groups_name' ] = [] ;
+        foreach( $_GET as $k => $v ) {
+            if( $v == 'grp' ) {
+                $filters[ 'product_groups_id' ][] = $k ;
+            }
         }
+        if( count( $filters[ 'product_groups_id' ] ) > 0 ) {  // AND p.id_grp IN ( '111','222','333' )
+            $where_part .=  
+                ( ($where_part == "") ? " WHERE " : " AND " )
+                . "p.id_grp IN ( '" . implode( "','", $filters[ 'product_groups_id' ] ) . "' ) " ;
+        }
+
         $view_data[ 'filters' ] = $filters ;
     }
 
     // echo $where_part ; exit ;
+    /////////////////////////////////////////  ДАННЫЕ ДЛЯ ФИЛЬТРОВ /////////////////////////////////
     // макс и мин цены
     $sql = "SELECT MIN(p.price), MAX(p.price) FROM Products p" ;
     try { 
@@ -133,10 +149,25 @@ else if( $_SERVER[ 'REQUEST_METHOD' ] == 'GET' ) {
         $_CONTEXT['logger']( 'shop_controller3 ' . $ex->getMessage() . $sql ) ;
         $view_data[ 'add_error' ] = "Server error try later" ;
     }
+    // Категории (группы) товаров
+    $sql = "SELECT g.id, MAX(g.name) AS name, COUNT(p.id) AS cnt FROM `product_groups` g JOIN products p ON g.id=p.id_grp GROUP BY 1" ;
+    try { 
+        $table = $_CONTEXT[ 'connection' ]->query( $sql ) ;
+        $view_data[ 'product_groups' ] = [] ;
+        while( $row = $table->fetch( PDO::FETCH_ASSOC ) ) {
+            $view_data[ 'product_groups' ][] = $row ;
+            if( in_array( $row['id'], $filters[ 'product_groups_id' ] ) )  {
+                $filters[ 'product_groups_name' ][] = $row['name'] ;  // имена выбранных групп для отображения фильтра
+            }
+        }
+    }
+    catch( PDOException $ex ) {
+        $_CONTEXT['logger']( 'shop_controller4 ' . $ex->getMessage() . $sql ) ;
+        $view_data[ 'add_error' ] = "Server error try later" ;
+    }
 
 
-
-    // пагинация
+    ///////////////////////////////////////////// пагинация //////////////////////////////////////////
     // 1. сколько всего товаров
     $sql = "SELECT COUNT(p.id) FROM Products p  $where_part " ;
     try { $total = $_CONTEXT[ 'connection' ]->query( $sql )->fetch(PDO::FETCH_NUM)[0] ; }
@@ -148,6 +179,7 @@ else if( $_SERVER[ 'REQUEST_METHOD' ] == 'GET' ) {
         // 2. номер страницы и кол-во элементов на странице
         $perpage = 4 ;
         $lastpage = ceil( $total / $perpage ) ;
+        if( $lastpage == 0 ) $lastpage = 1 ;
         @$page = intval( $_GET['page'] ) ?? 1 ;         //  $page  1      2      3      4       
         if( $page < 1 ) $page = 1 ;                     //  nums   1-4    5-8    9-12   13,14,15 (всего 15)
         if( $page > $lastpage ) $page = $lastpage ;     //  $skip  0      4      8      12
@@ -160,7 +192,7 @@ else if( $_SERVER[ 'REQUEST_METHOD' ] == 'GET' ) {
         ] ;
  // echo $total, ' ', $_GET['page'], '<br/>' ; print_r( $view_data[ 'paginator' ] ) ; exit ; 
 
-        $sql = "SELECT * FROM Products p   $where_part   $order_part     LIMIT $skip, $perpage" ;
+        $sql = "SELECT p.*, g.name as `grp_name` FROM Products p JOIN product_groups g ON p.id_grp = g.id   $where_part   $order_part     LIMIT $skip, $perpage" ;
         try {
             $view_data[ 'products' ] = 
                 $_CONTEXT[ 'connection' ]->query( $sql )->fetchAll( PDO::FETCH_ASSOC ) ;
@@ -188,10 +220,29 @@ CREATE TABLE product_groups (
 
 INSERT INTO product_groups(name) VALUES ('Программное обеспечение');
 
+Таблица типа "журнал" - постоянно изменяемая таблица
+В таблицах типа "словарь" (с почти неизменными данными) id можно вибирать не UUID, а по семантике
+CREATE TABLE user_roles (  
+    id VARCHAR(16) PRIMARY KEY,
+    descr TINYTEXT NOT NULL
+) ENGINE = InnoDB, DEFAULT CHARSET = UTF8 ;
+INSERT INTO user_roles VALUES( 'admin', 'Системный администратор - доступ к DDL' )
+INSERT INTO user_roles VALUES( 'moderator', 'Контент-модератор - доступ к DML' )
+INSERT INTO user_roles VALUES( 'guest', 'Гость - минимальные права на просмотр открытого контента' )
+
+ALTER TABLE users ADD COLUMN role_id VARCHAR(16) NOT NULL DEFAULT 'guest'
+ALTER TABLE users ADD FOREIGN KEY (role_id) REFERENCES user_roles (id)
+
 Д.З. Создать таблицу product_groups ( 
     id CHAR(36) PRIMARY KEY  DEFAULT UUID(),
     name TINYTEXT NOT NULL
 ) ENGINE = InnoDB, DEFAULT CHARSET = UTF8 ;
 Заполнить ее несколькими категориями (хотя бы 3) - для будущего фильтра
 Для товаров (таблица products) указать id группы 
+
+Д.З. (Экзаменационное): Приложить архив итогового проекта
+Доработать: фильтр по группам товаров
+Ожидаемое поведение:
+ - если  выбраны все группы, то сбросить фильтр групп (как будто нет выбранных вообще)
+ - также учитывать этот факт в пагинаторе
 */

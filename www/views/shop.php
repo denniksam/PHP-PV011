@@ -11,14 +11,27 @@
     <h4>Фильтры:</h4>
     Цена: от <input type=number name=minprice value=<?= $view_data['minprice'] ?> min=<?= $view_data['minprice'] ?>  max=<?= $view_data['maxprice'] ?> /> 
           до <input type=number name=maxprice value=<?= $view_data['maxprice'] ?> min=<?= $view_data['minprice'] ?>  max=<?= $view_data['maxprice'] ?> /><br/>
+    <!-- ********************** Группы товаров ********************************** -->
+    <?php foreach( $view_data[ 'product_groups' ] as $grp ) : ?>
+       <label>
+        <input  type="checkbox" 
+                name="<?= $grp['id'] ?>" 
+                value="grp" 
+                <?= ( in_array( $grp['id'], $filters[ 'product_groups_id' ] ) ) ? 'checked' : '' ?> 
+                /> 
+        <?= $grp['name'] ?> (<?= $grp['cnt'] ?>) 
+    </label><br/>
+    <?php endforeach ?>
+    <br/>
     <button>Применить фильтры</button>
 </form>
-
+<br/>
 <form>
     Поиск: <input name=search /> <button>найти</button>
 </form>
 
 <h3>Всего <?= $view_data[ 'paginator' ][ 'total' ] ?> позиций </h3>
+<!-- ************************************* Примененные фильтры ******************************************* -->
 <h4>
     <?php if( isset( $view_data[ 'filters' ][ 'minprice' ] ) ) : ?>
         Цена от  <?= $view_data[ 'filters' ][ 'minprice' ] ?> <br/>
@@ -29,7 +42,10 @@
     <?php if( isset( $view_data[ 'search' ] ) ) : ?>
         Результат поиска " <?= $view_data[ 'search' ] ?> " <br/>
     <?php endif ?>
-    <a href="/shop">Сбросить все фильтры</a>
+    <?php if( ! empty( $filters[ 'product_groups_name' ] ) ) : ?>
+        Группы товаров: <?= implode( ', ', $filters[ 'product_groups_name' ] ) ?> <br/>
+    <?php endif ?>
+    <br/><a href="/shop">Сбросить все фильтры</a>
 </h4>
 <?php if( empty( $view_data[ 'products' ] ) ) : ?>
     <p>
@@ -40,7 +56,7 @@
     <div class="img-container" >
         <img src="/images/<?= $product['image'] ?>" />
     </div>
-    <h4><?= $product['name'] ?></h4>
+    <h4><?= $product['name'] ?> (<i><?= $product['grp_name'] ?></i>)</h4>
     <h5><?= $product['descr'] ?></h5>
     <b><?= $product['price'] ?></b>
     <?php if( ! empty( $product['discount'] ) ) : ?>
@@ -76,6 +92,9 @@
         . ( ( isset( $view_data[ 'search' ] ) ) 
                 ? "search=" . $view_data[ 'search' ] . "&"
                 : "" ) 
+        . ( ( ! empty( $filters[ 'product_groups_id' ] ) ) 
+                ? implode( '=grp&', $filters[ 'product_groups_id' ] ) . '=grp&'
+                : "" )  
         ;
 ?>
 <div class='paginator'>
@@ -100,7 +119,7 @@
     <?php endif ?>
 </div>
 
-
+<?php if( ! empty( $_CONTEXT[ 'auth_user' ] ) and $_CONTEXT[ 'auth_user' ][ 'role_id' ] == 'admin' ) : ?>
 
 <form method="post" enctype="multipart/form-data" >
     <input type="text"   name="name"     placeholder="Название" /><br/>
@@ -112,6 +131,9 @@
 </form>
 
 <?= $view_data[ 'add_error' ] ?? ''  ?>
+
+<?php endif ?>
+
 
 <?php
 
